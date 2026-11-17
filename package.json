@@ -1,0 +1,66 @@
+{
+  "name": "dsh-update-guard",
+  "version": "1.0.0",
+  "description": "Finish DeepSeek Harness Desktop self-updates on Windows that the in-app updater abandons after 'Host did not complete graceful task teardown' — a scheduled guard installs the already-downloaded installer silently.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon.svg": "./icon.svg"
+  },
+  "icon": "./icon.svg",
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "icon.svg",
+    "locale/*.json",
+    "docs",
+    "scripts",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "dsh-bundle",
+    "deepseek",
+    "deepseek-harness",
+    "desktop",
+    "updater",
+    "update",
+    "windows",
+    "electron-updater",
+    "nsis",
+    "scheduled-task"
+  ],
+  "license": "MIT",
+  "author": "wsk114514",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wsk114514/dsh-update-guard.git"
+  },
+  "homepage": "https://github.com/wsk114514/dsh-update-guard#readme",
+  "bugs": {
+    "url": "https://github.com/wsk114514/dsh-update-guard/issues"
+  },
+  "engines": {
+    "node": ">=22",
+    "dsh": ">=0.2.0-rc.1 <0.3.0-0"
+  },
+  "os": [
+    "win32"
+  ],
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "^0.2.0-rc.1"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

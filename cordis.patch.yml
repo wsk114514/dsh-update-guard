@@ -1,0 +1,15 @@
+# dsh-update-guard bundle patch: mount the host-plane plugin row.
+#
+# One row and nothing else. The plugin registers three tools on the host's
+# `tools` service (`dsh_update_guard_status`, `dsh_update_guard_run`,
+# `dsh_update_guard_setup`) and starts no background work of its own — the
+# actual update takeover runs in the PowerShell scripts, either on demand
+# through a tool call or from the DshUpdateGuard scheduled task.
+#
+# No config is needed: the scripts read the install directory, the update feed
+# URL and the channel from the DSH installation itself
+# (resources/app-update.yml), and the task's policy is fixed at registration
+# time by `dsh_update_guard_setup`.
+- insert:
+    - id: dsh-update-guard
+      name: dsh-update-guard

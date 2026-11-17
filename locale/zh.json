@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "更新守卫",
+    "description": "接管 DeepSeek Harness 桌面版在 Windows 上失败的自动安装：当应用内更新因「优雅退出超时」而放弃安装时，由当前用户计划任务把已经下载好的安装包静默装完；另提供三个工具查看状态、立刻执行、安装或卸载任务。",
+    "detail": "./docs/DETAIL.md"
+  }
+}

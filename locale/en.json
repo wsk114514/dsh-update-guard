@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Update guard",
+    "description": "Finishes DeepSeek Harness Desktop self-updates on Windows that the in-app updater abandons after a failed graceful teardown: a per-user scheduled task installs the already-downloaded installer silently, and three tools report state, run it on demand and manage the task.",
+    "detail": "./docs/DETAIL.md"
+  }
+}
