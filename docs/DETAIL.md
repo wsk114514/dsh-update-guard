@@ -77,10 +77,17 @@ deepseek-harness-<version>-win-x64.exe --updated /S --force-run [/D=<installDir>
 
 - 登录时触发一次 + 之后每 5 分钟触发一次（重复 3650 天，等价于长期有效）；
 - `Interactive` / `Limited`：普通用户权限，不需要管理员（安装器 `isAdminRightsRequired=false`）；
-- 隐藏窗口运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ... -Policy Auto`；
+- 动作是 `wscript.exe //B //Nologo "<启动器>.vbs" -Policy Auto`，启动器再用隐藏窗口拉起
+  `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File ... -Policy Auto`；
 - `MultipleInstances IgnoreNew`，守卫内部还有 `Local\DshUpdateGuard` 互斥体，不会并发安装。
 
-插件安装任务时会把两个脚本复制到 `%LOCALAPPDATA%\dsh-update-guard\scripts\`，让任务指向**稳定副本**：
+为什么不用 `powershell.exe` 直接当任务动作：`powershell.exe` 是**控制台程序**，Task Scheduler
+以交互用户身份启动它时，Windows 会先创建控制台窗口、然后才应用 `-WindowStyle Hidden`，
+于是屏幕上每 5 分钟闪一次黑窗（v1.0.1 修的就是这个）。`wscript.exe` 是 GUI 子系统程序，
+本身没有控制台，由它用 `WScript.Shell.Run command, 0, False` 启动 PowerShell 就不会有任何窗口。
+启动器文件刻意只写 ASCII：VBScript 按系统代码页解码，写中文会在非中文系统上出错。
+
+插件安装任务时会把三个脚本复制到 `%LOCALAPPDATA%\dsh-update-guard\scripts\`，让任务指向**稳定副本**：
 以后升级/重装插件都不会因为 `node_modules` 目录被替换而让任务失效。
 
 ### 工具

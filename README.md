@@ -42,6 +42,7 @@ deepseek-harness-<版本>-win-x64.exe --updated /S --force-run
 ```
 
 - **不打断会话**：默认策略下不会关闭正在运行的 DSH，只在它退出后动手。
+- **不闪窗**：计划任务通过 `wscript.exe` 跑一个 VBS 启动器，再用隐藏窗口拉起 PowerShell，屏幕上不会每几分钟闪一次黑窗。
 - **只装官方包**：校验 Authenticode，签名必须有效且 Subject 含 `DeepSeek`。
 - **普通用户权限**：安装器 `isAdminRightsRequired=false`，不需要管理员。
 - **可观察**：日志在 `%LOCALAPPDATA%\dsh-update-guard\guard.log`，随时用工具查状态。
@@ -131,10 +132,18 @@ cordis.patch.yml            bundle patch（插入插件行）
 scripts/dsh-update-guard.ps1          核心守卫脚本
 scripts/register-dsh-update-guard.ps1 计划任务注册
 scripts/guard-status.ps1              只读状态探测，输出单行 JSON
+scripts/dsh-update-guard-launch.vbs   隐藏窗口启动器（计划任务经 wscript 调用它）
 docs/DETAIL.md              根因与实现细节
 ```
 
 改完 `index.js` 后 `node --check index.js`；改 PowerShell 后用 `-SelfTest` 与 `-DryRun` 自检。
+
+## 更新记录
+
+- **1.0.1** —— 修：计划任务每 5 分钟在屏幕上闪一次黑窗。任务动作从 `powershell.exe -WindowStyle Hidden`
+  改为 `wscript.exe //B //Nologo <启动器>.vbs`，由启动器以隐藏窗口拉起 PowerShell
+  （`powershell.exe` 是控制台程序，控制台窗口总会在隐藏样式生效前先被创建）。同时修掉重定向输出时的中文乱码。
+- **1.0.0** —— 首个版本：三个工具（status / run / setup）、五种策略、计划任务、自带签名校验与日志。
 
 ## 许可证
 

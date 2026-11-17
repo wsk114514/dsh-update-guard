@@ -244,7 +244,9 @@ async function readStatus ({ logLines = 12 } = {}) {
 /** Copy both scripts to the stable per-user location the task points at. */
 async function publishScripts () {
   await mkdir(STABLE_DIR, { recursive: true })
-  const names = (await readdir(SCRIPTS_DIR)).filter((entry) => entry.endsWith('.ps1'))
+  const names = (await readdir(SCRIPTS_DIR)).filter(
+    (entry) => entry.endsWith('.ps1') || entry.endsWith('.vbs')
+  )
   for (const entry of names) {
     await copyFile(path.join(SCRIPTS_DIR, entry), path.join(STABLE_DIR, entry))
   }

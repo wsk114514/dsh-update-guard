@@ -1,6 +1,6 @@
 {
   "name": "dsh-update-guard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Finish DeepSeek Harness Desktop self-updates on Windows that the in-app updater abandons after 'Host did not complete graceful task teardown' — a scheduled guard installs the already-downloaded installer silently.",
   "type": "module",
   "main": "index.js",

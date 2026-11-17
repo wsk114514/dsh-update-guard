@@ -53,7 +53,9 @@ try {
 } catch { }
 
 $guard = Join-Path $PSScriptRoot 'dsh-update-guard.ps1'
+$launcher = Join-Path $PSScriptRoot 'dsh-update-guard-launch.vbs'
 $powershell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+$wscript = Join-Path $env:SystemRoot 'System32\wscript.exe'
 
 function Write-Step {
     param([string]$Message)
@@ -75,16 +77,25 @@ if (-not (Test-Path $guard)) { throw ('找不到守卫脚本：' + $guard) }
 if (-not (Test-Path $powershell)) { throw ('找不到 powershell.exe：' + $powershell) }
 
 # ---------------------------------------------------------------- 组装动作 ----
-$arguments = ('-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}" -Policy {1}' -f $guard, $Policy)
-if ($ForceClose) { $arguments += ' -ForceClose' }
-
-$action = New-ScheduledTaskAction -Execute $powershell -Argument $arguments -WorkingDirectory $PSScriptRoot
+# 用 wscript.exe 跑一个 VBS 启动器，再由它用「隐藏窗口」拉起 powershell。
+# 直接把 powershell.exe 当成任务动作时，即使加了 -WindowStyle Hidden，Windows
+# 也是先创建控制台窗口再应用隐藏样式，于是用户会看到黑窗每几分钟闪一下。
+if ((Test-Path $launcher) -and (Test-Path $wscript)) {
+    $arguments = ('//B //Nologo "{0}" -Policy {1}' -f $launcher, $Policy)
+    if ($ForceClose) { $arguments += ' -ForceClose' }
+    $action = New-ScheduledTaskAction -Execute $wscript -Argument $arguments -WorkingDirectory $PSScriptRoot
+} else {
+    $arguments = ('-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}" -Policy {1}' -f $guard, $Policy)
+    if ($ForceClose) { $arguments += ' -ForceClose' }
+    $action = New-ScheduledTaskAction -Execute $powershell -Argument $arguments -WorkingDirectory $PSScriptRoot
+    Write-Warning '找不到 wscript.exe 或启动器，退回直接调用 powershell（可能短暂闪窗）'
+}
 
 # ---------------------------------------------------------------- 组装触发 ----
 # 1) 登录时
 $triggerLogon = New-ScheduledTaskTrigger -AtLogOn -User ("{0}\{1}" -f $env:USERDOMAIN, $env:USERNAME)
 
-# 2) 首次 3 分钟后开始，每 15 分钟一次，重复 10 年（等价于长期有效）
+# 2) 首次 3 分钟后开始，每 5 分钟一次，重复 10 年（等价于长期有效）
 $triggerRepeat = New-ScheduledTaskTrigger -Once -At ((Get-Date).AddMinutes(3)) `
     -RepetitionInterval (New-TimeSpan -Minutes 5) `
     -RepetitionDuration (New-TimeSpan -Days 3650)
@@ -100,7 +111,7 @@ $principal = New-ScheduledTaskPrincipal -UserId ("{0}\{1}" -f $env:USERDOMAIN, $
     -LogonType Interactive -RunLevel Limited
 
 Write-Step ('注册计划任务 {0}' -f $TaskName)
-Write-Step ('动作：{0} {1}' -f $powershell, $arguments)
+Write-Step ('动作：{0} {1}' -f $action.Execute, $action.Arguments)
 
 Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger @($triggerLogon, $triggerRepeat) `
     -Settings $settings -Principal $principal -Description '接管 DeepSeek Harness 桌面版失败/待定的自动更新安装' -Force | Out-Null
